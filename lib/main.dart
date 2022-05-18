@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: const MyHomePage(),
     );
@@ -70,8 +70,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: getPage(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
+        onPressed: () async {
+          String l = await Navigator.of(context)
+              .push(MaterialPageRoute(builder: (ctx) => LocationPage()));
+
+          if (l != null) {
+            stationName = l;
+            getMiseData();
+          }
+        },
+        child: const Icon(Icons.location_on),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
@@ -132,6 +140,54 @@ class _MyHomePageState extends State<MyHomePage> {
             Text("통합 환경 대기 지수 : ${data.first.khai}",
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 14, color: Colors.white)),
+            Container(height: 20),
+            Expanded(
+              child: Container(
+                // color: Colors.redAccent,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: List.generate(data.length, (idx) {
+                    Mise mise = data[idx];
+                    int _status = getStatus(mise);
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 20, horizontal: 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            mise.dataTime.replaceAll(" ", "\n"),
+                            style: const TextStyle(
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Container(
+                            child: Image.asset(
+                              icon[_status],
+                              fit: BoxFit.contain,
+                            ),
+                            height: 50,
+                            width: 50,
+                          ),
+                          Text(
+                            "${mise.pm10}ug/m2",
+                            style: const TextStyle(color: Colors.white),
+                          )
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            Container(
+              height: 80,
+            ),
           ],
         ));
   }
@@ -142,5 +198,41 @@ class _MyHomePageState extends State<MyHomePage> {
     data.removeWhere((m) => m.pm10 == 0);
 
     setState(() {});
+  }
+}
+
+class LocationPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _LocationPageState();
+  }
+}
+
+class _LocationPageState extends State<LocationPage> {
+  List<String> locations = [
+    "구로구",
+    "동작구",
+    "마포구",
+    "강남구",
+    "강동구",
+    "성북구",
+    "종로구",
+    "동대문구",
+    "표선면",
+  ];
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(),
+        body: ListView(
+          children: List.generate(locations.length, (idx) {
+            return ListTile(
+                title: Text(locations[idx]),
+                trailing: const Icon(Icons.arrow_forward),
+                onTap: () {
+                  Navigator.of(context).pop(locations[idx]);
+                });
+          }),
+        ));
   }
 }
